@@ -1,9 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
 	"net/http"
+	_ "net/http/pprof"
+	"sync/atomic"
 	"xiuianserver/connection"
+	"xiuianserver/game"
+
+	"github.com/gorilla/websocket"
 )
 
 type testsend struct {
@@ -14,6 +18,9 @@ type testsend struct {
 var cid uint32 = 0
 
 func wsHandle(writer http.ResponseWriter, request *http.Request) {
+	if request.RequestURI != "/" {
+		return
+	}
 	upgrader := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		return true
 	}}
@@ -38,13 +45,15 @@ func wsHandle(writer http.ResponseWriter, request *http.Request) {
 	//	//conn.WriteMessage(websocket.TextMessage, []byte(string(sendmsg)))
 	//
 	//}
-	cid++
-	dealConn := connection.NewConnection(conn, cid)
+	//cid++
+	atomic.AddUint32(&cid, 1)
+	dealConn := connection.NewConnection(conn, atomic.LoadUint32(&cid))
 
 	go dealConn.Start()
 }
 
 func main() {
+	game.NewKaPool()
 	go connection.ListenPlayerMap()
 	http.HandleFunc("/", wsHandle)
 	http.ListenAndServe(":7000", nil)

@@ -3,12 +3,13 @@ package connection
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"sync"
 	"time"
 	"xiuianserver/game"
 	"xiuianserver/model"
+
+	"github.com/gorilla/websocket"
 )
 
 var ConnectionMap sync.Map
