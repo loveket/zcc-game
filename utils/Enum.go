@@ -21,6 +21,7 @@ const (
 	MsgHp             = "MsgHp"
 	MsgGameEnd        = "MsgGameEnd"
 	MsgPlayerHallChat = "MsgPlayerHallChat"
+	ApiGameKaPool     = "ApiGameKaPool"
 )
 const (
 	Map1      = "Map1"

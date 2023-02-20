@@ -128,3 +128,6 @@ type TimePast struct {
 type ReqActorsMsg struct {
 	Data []*PlayerMessage `json:"data"`
 }
+type ReqKaPool struct {
+	Times int `json:"times"`
+}

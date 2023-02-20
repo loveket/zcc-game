@@ -2,6 +2,7 @@ package connection
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
@@ -19,6 +20,7 @@ type IBranchMethod interface {
 	apiGameStart()
 	msgClientSync(data []byte)
 	msgHp(data []byte)
+	apiGameKaPool(data []byte)
 }
 type handlerConnBranch struct {
 	conn *Connection
@@ -47,6 +49,8 @@ func (h *handlerConnBranch) HandlerBranch(rpt string, data []byte) {
 		h.msgClientSync(data)
 	case utils.MsgHp:
 		h.msgHp(data)
+	case utils.ApiGameKaPool:
+		h.apiGameKaPool(data)
 	}
 }
 func (h *handlerConnBranch) apiPlayerList() {
@@ -160,6 +164,34 @@ func (h *handlerConnBranch) apiGameStart() {
 		resp = model.Response{Name: utils.ApiGameStart, Data: model.ResponseBody{Success: false, Error: err.Error(), Res: ""}}
 	}
 	resp = model.Response{Name: utils.ApiGameStart, Data: model.ResponseBody{Success: true, Error: "", Res: ""}}
+	h.conn.msgChan <- resp
+}
+func (h *handlerConnBranch) apiGameKaPool(data []byte) {
+	t := &model.ReqKaPool{}
+	var err error
+	err = json.Unmarshal(data, &t)
+	if err != nil {
+		log.Println("Unmarshal err", err)
+		return
+	}
+	var result []string
+	playerMsg := game.GetPlayerManager().Player[h.conn.ConnID]
+	if t.Times == 1 {
+		result = append(result, playerMsg.KaPool.OneLuckyDraw()...)
+	} else if t.Times == 10 {
+		result = append(result, playerMsg.KaPool.TenLuckyDraw()...)
+	} else {
+		err = errors.New("请求抽卡出错")
+		return
+	}
+	fmt.Println("******", result)
+	var resp model.Response
+	if err != nil {
+		log.Println(err)
+		resp = model.Response{Name: utils.ApiGameKaPool, Data: model.ResponseBody{Success: false, Error: err.Error(), Res: ""}}
+		return
+	}
+	resp = model.Response{Name: utils.ApiGameKaPool, Data: model.ResponseBody{Success: true, Error: "", Res: result}}
 	h.conn.msgChan <- resp
 }
 func (h *handlerConnBranch) msgClientSync(data []byte) {

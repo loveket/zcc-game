@@ -11,6 +11,7 @@ type Player struct {
 	Connection   *websocket.Conn
 	Rid          uint32
 	IsRoomMaster bool
+	KaPool       *KaPool
 }
 
 func NewPlayer(id uint32, nickname string, conn *websocket.Conn) *Player {
@@ -18,6 +19,7 @@ func NewPlayer(id uint32, nickname string, conn *websocket.Conn) *Player {
 		Id:         id,
 		Nickname:   nickname,
 		Connection: conn,
+		KaPool:     &KaPool{},
 	}
 }
 func (p *Player) GetNickname() string {

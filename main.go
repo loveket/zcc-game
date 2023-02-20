@@ -1,13 +1,12 @@
 package main
 
 import (
+	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"sync/atomic"
 	"xiuianserver/connection"
-	"xiuianserver/game"
-
-	"github.com/gorilla/websocket"
 )
 
 type testsend struct {
@@ -53,7 +52,7 @@ func wsHandle(writer http.ResponseWriter, request *http.Request) {
 }
 
 func main() {
-	game.NewKaPool()
+	log.Println("start server...")
 	go connection.ListenPlayerMap()
 	http.HandleFunc("/", wsHandle)
 	http.ListenAndServe(":7000", nil)

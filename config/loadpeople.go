@@ -35,7 +35,7 @@ func NewPeoplePool() {
 	}
 	ps := &PeopleSlice{}
 	err = json.Unmarshal(data, &ps)
-	fmt.Println(ps, "***********")
+	//fmt.Println(ps, "***********")
 	if err != nil {
 		fmt.Println("Unmarshal err", err)
 	}

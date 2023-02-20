@@ -12,6 +12,14 @@ import (
 
 const kapoolpath = "./config/kaPool.json"
 
+func init() {
+	rand.Seed(time.Now().Unix())
+	NewKaPool()
+}
+
+type KaPool struct {
+}
+
 var ConfigMap map[int]*KaGroup
 var ConfigSlice *KaPoolSlice
 
@@ -62,40 +70,43 @@ func GetKaGroupMap() {
 		dm.WeightCount += v.Weight
 		dm.KaConfig = append(dm.KaConfig, v)
 	}
-	RandTest()
 }
-
 func GetRandPool(k *KaGroup) *Config {
-	rand.Seed(time.Now().Unix())
 	rNums := rand.Intn(k.WeightCount)
 	rNow := 0
 	for _, v := range k.KaConfig {
 		rNow += v.Weight
 		if rNums < rNow {
-			return v
+			if v.End == 1 {
+				return v
+			}
+			pool := ConfigMap[v.Result]
+			if pool == nil {
+				return nil
+			}
+			return GetRandPool(pool)
 		}
 	}
 	return nil
 }
-
-func RandTest() {
+func (kp *KaPool) OneLuckyDraw() (kPool []string) {
 	pool := ConfigMap[1000]
 	for {
 		config := GetRandPool(pool)
-		//fmt.Println(config.End, "**", config.Id, "***", config.Result)
-		if config.End == 0 {
-			fmt.Println("**********", config.Result)
-			for _, v := range ConfigSlice.KaPool {
-				if v.Id == config.Result {
-					fmt.Println(getpeople.GetPeopleName(v.Result))
-
-				}
-			}
+		fmt.Println(getpeople.GetPeopleName(config.Result))
+		kPool = append(kPool, getpeople.GetPeopleName(config.Result))
+		return kPool
+	}
+}
+func (kp *KaPool) TenLuckyDraw() (kPool []string) {
+	pool := ConfigMap[1000]
+	num := 0
+	for {
+		config := GetRandPool(pool)
+		kPool = append(kPool, getpeople.GetPeopleName(config.Result))
+		num++
+		if num >= 10 {
+			return kPool
 		}
-		// cm := ConfigMap[config.Result]
-		// if cm == nil {
-		// 	break
-		// }
-		time.Sleep(500 * time.Millisecond)
 	}
 }
