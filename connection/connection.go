@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
+	"strconv"
 	"sync"
 	"time"
 	"xiuianserver/game"
@@ -12,7 +14,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var ConnectionMap sync.Map
+var ConnOnlineMap sync.Map
 
 type Connection struct {
 	Conn     *websocket.Conn
@@ -22,7 +24,10 @@ type Connection struct {
 	msgChan  chan interface{}
 	lock     sync.Mutex
 }
-
+type OnlineStatusMsg struct {
+	RemoteAddr net.Addr
+	NsqTopic   string
+}
 type RespPlayerMessage struct {
 	Name string           `json:"name"`
 	Data model.RespPlayer `json:"data"`
@@ -63,7 +68,12 @@ func (conn *Connection) Start() {
 	if flag {
 		go conn.WSRead()
 		go conn.WSWrite()
-		ConnectionMap.Store(conn.ConnID, conn.Conn.RemoteAddr())
+		osm := &OnlineStatusMsg{
+			conn.Conn.RemoteAddr(),
+			"systembroadcast" + strconv.Itoa(int(conn.GetConnID())),
+		}
+
+		ConnOnlineMap.Store(conn.ConnID, osm)
 	}
 }
 func (conn *Connection) WSRead() {
@@ -128,6 +138,7 @@ func (conn *Connection) Stop() {
 	game.GetPlayerManager().Broadcast()
 	game.GetRoomManager().Broadcast()
 	game.GetRoomManager().BroadcastRoomPlayer(playerMsg.Rid)
+	ConnOnlineMap.Delete(conn.GetConnID())
 	if conn.isClosed == true {
 		return
 	}

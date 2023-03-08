@@ -23,6 +23,9 @@ type KaPool struct {
 var ConfigMap map[int]*KaGroup
 var ConfigSlice *KaPoolSlice
 
+type KaPoolSlice struct {
+	KaPool []*Config `json:"ka_pool"`
+}
 type KaGroup struct {
 	kId         int
 	WeightCount int
@@ -33,10 +36,6 @@ type Config struct {
 	Weight int `json:"weight"`
 	Result int `json:"result"`
 	End    int `json:"end"`
-}
-
-type KaPoolSlice struct {
-	KaPool []*Config `json:"ka_pool"`
 }
 
 func NewKaPool() {

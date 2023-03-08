@@ -118,7 +118,7 @@ func (h *handlerConnBranch) apiChatSend(data []byte) {
 		log.Println("Unmarshal err", err)
 		return
 	}
-	//Todo   redis后续引入
+	//todo   redis后续引入
 	player := game.GetPlayerManager().Player[h.conn.GetConnID()]
 	resp := model.RespChatHall{
 		NickName: player.GetNickname(),

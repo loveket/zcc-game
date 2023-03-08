@@ -62,7 +62,6 @@ func (r *Room) GetRoomView(player []*Player) (roomList []model.RoomPlayerMessage
 }
 func (r *Room) start() error {
 	playerMsgList := make([]*model.PlayerMessage, 0)
-	rand.Seed(time.Now().Unix())
 
 	for i := 0; i < len(r.Players); i++ {
 		randNum := rand.Intn(301)
