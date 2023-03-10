@@ -53,6 +53,7 @@ func UnLock(ctx context.Context, uuid string, client *redis.Client) {
 }
 func listenResetTime(ctx context.Context, uuid string) {
 	tick := time.NewTicker(timeout / 2)
+	defer tick.Stop()
 	script := redis.NewScript(resetScript)
 	for {
 		select {
