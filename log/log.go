@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	logPath = "G:\\code\\golang\\zcc-game\\log\\logs"
+	logPath = ""
 )
 
 type ILog interface {
-	ImportantMSG(string)
-	WarningMSG(string)
+	InfoMSG(string)
+	WarnMSG(string)
 	ErrorMSG(string)
 }
 type Log struct {
@@ -19,27 +19,31 @@ type Log struct {
 }
 
 func NewLog(filename string) *Log {
-	path := logPath + "\\" + filename + ".log"
+	logPath = GetPath()
+	if len(logPath) == 0 {
+		return nil
+	}
+	path := logPath + "\\diy_logs\\" + filename + ".log"
 	return &Log{filepath: path}
 }
-func (p *Log) ImportantMSG(data string) {
+func (p *Log) InfoMSG(data string) {
 	file, err := os.OpenFile(p.filepath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return
 	}
 	defer file.Close()
 	curTime := time.Now().Format("2006-01-02 15:04:05")
-	msgType := "[IMPORT]："
+	msgType := "[INFO]："
 	file.WriteString(curTime + msgType + data + "\n")
 }
-func (p *Log) WarningMSG(data string) {
+func (p *Log) WarnMSG(data string) {
 	file, err := os.OpenFile(p.filepath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return
 	}
 	defer file.Close()
 	curTime := time.Now().Format("2006-01-02 15:04:05")
-	msgType := "[WARNING]："
+	msgType := "[WARN]："
 	file.WriteString(curTime + msgType + data + "\n")
 }
 func (p *Log) ErrorMSG(data string) {

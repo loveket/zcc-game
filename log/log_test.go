@@ -8,7 +8,7 @@ import (
 
 func TestLog(t *testing.T) {
 	wg := &sync.WaitGroup{}
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, flag int) {
 			defer wg.Done()

@@ -9,7 +9,7 @@ import (
 type NsqClient struct {
 	RemoteAddr string
 	Producer   *nsq.Producer
-	Log        *log_diy.Log
+	//Log        *log_diy.Logger
 }
 
 func NewNsqClient(addr string) *NsqClient {
@@ -19,11 +19,11 @@ func NewNsqClient(addr string) *NsqClient {
 		log.Println("NewProducer err", err)
 		return nil
 	}
-	return &NsqClient{RemoteAddr: addr, Producer: pb, Log: log_diy.NewLog(addr)}
+	return &NsqClient{RemoteAddr: addr, Producer: pb}
 }
 func (nc *NsqClient) Pub(topic string, message []byte) {
 	err := nc.Producer.Publish(topic, message)
 	if err != nil {
-		nc.Log.ErrorMSG(err.Error())
+		log_diy.LoggerSingle.Error("[nsq Publish err]" + err.Error())
 	}
 }
