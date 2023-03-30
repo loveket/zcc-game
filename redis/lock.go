@@ -7,6 +7,12 @@ import (
 	"time"
 )
 
+const (
+	B = 1 << (iota * 10)
+	KB
+	MB
+)
+
 var lockflag string = "zcc"
 var timeout time.Duration = 5 * time.Second
 var stopChan = make(chan struct{})

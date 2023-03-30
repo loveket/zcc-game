@@ -36,13 +36,16 @@ func init() {
 }
 
 type Logger struct {
-	infoChan  chan string
-	warnChan  chan string
-	errorChan chan string
-	infoFile  *os.File
-	warnFile  *os.File
-	errorFile *os.File
-	once      sync.Once
+	infoChan    chan string
+	warnChan    chan string
+	errorChan   chan string
+	infoStatus  bool
+	warnStatus  bool
+	errorStatus bool
+	infoFile    *os.File
+	warnFile    *os.File
+	errorFile   *os.File
+	once        sync.Once
 }
 
 var LoggerSingle *Logger
@@ -67,6 +70,9 @@ func (l *Logger) init() {
 		l.infoChan = make(chan string, 1)
 		l.warnChan = make(chan string, 1)
 		l.errorChan = make(chan string, 1)
+		l.infoStatus = true
+		l.warnStatus = true
+		l.errorStatus = true
 		infoFile, err := os.OpenFile(logInfoPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			panic(fmt.Sprintf("failed to create info.log: %v", err))
@@ -92,6 +98,10 @@ func (l *Logger) StopLogger() {
 	close(l.warnChan)
 	close(l.infoChan)
 	close(l.errorChan)
+	l.infoStatus = false
+	l.warnStatus = false
+	l.errorStatus = false
+	time.Sleep(time.Second)
 	l.infoFile.Close()
 	l.errorFile.Close()
 	l.warnFile.Close()
@@ -118,10 +128,22 @@ func (l *Logger) log(level LogLevel, message string) {
 	case LevelDebug:
 		log.Printf("[DEBUG] %s", message)
 	case LevelInfo:
+		if !l.infoStatus {
+			fmt.Println("日志关闭状态")
+			return
+		}
 		l.infoChan <- message
 	case LevelWarning:
+		if !l.warnStatus {
+			fmt.Println("日志关闭状态")
+			return
+		}
 		l.warnChan <- message
 	case LevelError:
+		if !l.errorStatus {
+			fmt.Println("日志关闭状态")
+			return
+		}
 		l.errorChan <- message
 	}
 }

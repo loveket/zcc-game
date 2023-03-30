@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"xiuianserver/utils"
 )
-
-const peoplepath = "./config/people.json"
 
 func init() {
 	NewPeoplePool()
@@ -24,7 +23,7 @@ type peopleMessage struct {
 }
 
 func NewPeoplePool() {
-	file, err := os.Open(peoplepath)
+	file, err := os.Open(utils.GetOsPwd() + "\\config\\people.json")
 	if err != nil {
 		fmt.Println("file read err", err)
 	}

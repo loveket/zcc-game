@@ -1,6 +1,8 @@
 package log
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestLogger(t *testing.T) {
 	GetLogger()
@@ -11,4 +13,5 @@ func TestLogger(t *testing.T) {
 		LoggerSingle.Error("我好像有错误的")
 	}
 	LoggerSingle.StopLogger()
+	//LoggerSingle.Info("我挺重要的")
 }

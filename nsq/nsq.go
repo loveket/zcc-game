@@ -3,27 +3,17 @@ package nsq
 import (
 	"github.com/nsqio/go-nsq"
 	"log"
-	log_diy "xiuianserver/log"
+	gc "xiuianserver/config"
 )
 
-type NsqClient struct {
-	RemoteAddr string
-	Producer   *nsq.Producer
-	//Log        *log_diy.Logger
-}
+var NsqPub *nsq.Producer
 
-func NewNsqClient(addr string) *NsqClient {
+func NewNsqClient() {
 	config := nsq.NewConfig()
-	pb, err := nsq.NewProducer(addr, config)
+	pb, err := nsq.NewProducer(gc.GlobalConfig.NsqConfig.RemoteAddr, config)
 	if err != nil {
 		log.Println("NewProducer err", err)
-		return nil
+		return
 	}
-	return &NsqClient{RemoteAddr: addr, Producer: pb}
-}
-func (nc *NsqClient) Pub(topic string, message []byte) {
-	err := nc.Producer.Publish(topic, message)
-	if err != nil {
-		log_diy.LoggerSingle.Error("[nsq Publish err]" + err.Error())
-	}
+	NsqPub = pb
 }

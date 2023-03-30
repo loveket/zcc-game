@@ -1,0 +1,11 @@
+Nsq:
+  RemoteAddr: "192.168.44.129:4150"
+Redis:
+  RemoteAddr: "127.0.0.1:6379"
+  User: ""
+  Pass: ""
+  DB: 0
+Elastic:
+  HttpAddr: "http://192.168.44.131:9200"
+  NodeAddr: "http://192.168.44.131:9300"
+  Sniff: false
