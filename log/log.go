@@ -3,6 +3,7 @@ package log
 import (
 	"os"
 	"time"
+	"xiuianserver/utils"
 )
 
 var (
@@ -19,11 +20,7 @@ type Log struct {
 }
 
 func NewLog(filename string) *Log {
-	logPath = GetPath()
-	if len(logPath) == 0 {
-		return nil
-	}
-	path := logPath + "\\diy_logs\\" + filename + ".log"
+	path := utils.GetOsPwd() + "\\log\\diy_logs\\" + filename + ".log"
 	return &Log{filepath: path}
 }
 func (p *Log) InfoMSG(data string) {

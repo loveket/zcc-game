@@ -1,24 +1,21 @@
-package connection
+package game
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/websocket"
 	"log"
 	"net"
-	"strconv"
 	"sync"
 	"time"
-	"xiuianserver/game"
 	"xiuianserver/model"
-
-	"github.com/gorilla/websocket"
 )
 
 var ConnOnlineMap sync.Map
 
 type Connection struct {
 	Conn     *websocket.Conn
-	ConnID   uint32
+	ConnID   string
 	isClosed bool
 	ExitChan chan bool
 	msgChan  chan interface{}
@@ -47,7 +44,7 @@ func ListenPlayerMap() {
 		}
 	}
 }
-func NewConnection(conn *websocket.Conn, connID uint32) *Connection {
+func NewConnection(conn *websocket.Conn, connID string) *Connection {
 	return &Connection{
 		Conn:     conn,
 		ConnID:   connID,
@@ -60,21 +57,28 @@ func NewConnection(conn *websocket.Conn, connID uint32) *Connection {
 func (conn *Connection) Start() {
 	log.Println("start game server...")
 	//人物登录
-	flag, err := game.GetPlayerManager().PlayerLogin(conn.Conn)
-	if err != nil {
-		log.Println("player login err", err)
-		return
+	//flag, err := game.GetPlayerManager().PlayerLogin(conn.Conn)
+	//if err != nil {
+	//	log.Println("player login err", err)
+	//	return
+	//}
+	//if flag {
+	//	go conn.WSRead()
+	//	go conn.WSWrite()
+	//	osm := &OnlineStatusMsg{
+	//		conn.Conn.RemoteAddr(),
+	//		"systembroadcast" + strconv.Itoa(int(conn.GetConnID())),
+	//	}
+	//
+	//	ConnOnlineMap.Store(conn.ConnID, osm)
+	//}
+	go conn.WSRead()
+	go conn.WSWrite()
+	osm := &OnlineStatusMsg{
+		conn.Conn.RemoteAddr(),
+		"systembroadcast" + conn.GetConnID(),
 	}
-	if flag {
-		go conn.WSRead()
-		go conn.WSWrite()
-		osm := &OnlineStatusMsg{
-			conn.Conn.RemoteAddr(),
-			"systembroadcast" + strconv.Itoa(int(conn.GetConnID())),
-		}
-
-		ConnOnlineMap.Store(conn.ConnID, osm)
-	}
+	ConnOnlineMap.Store(conn.ConnID, osm)
 }
 func (conn *Connection) WSRead() {
 	log.Println(conn.ConnID, "start read")
@@ -132,12 +136,12 @@ func (conn *Connection) Stop() {
 	//conn.lock.Lock()
 	//defer conn.lock.Unlock()
 	log.Println("conn stop...connid", conn.ConnID)
-	playerMsg := game.GetPlayerManager().Player[conn.GetConnID()]
-	game.GetRoomManager().PlayerLeaveRoom(playerMsg.Rid, playerMsg.Id)
-	game.GetPlayerManager().RemovePlayer(playerMsg.Id)
-	game.GetPlayerManager().Broadcast()
-	game.GetRoomManager().Broadcast()
-	game.GetRoomManager().BroadcastRoomPlayer(playerMsg.Rid)
+	playerMsg := GetPlayerManager().Player[conn.GetConnID()]
+	GetRoomManager().PlayerLeaveRoom(playerMsg.Rid, playerMsg.Id)
+	GetPlayerManager().RemovePlayer(playerMsg.Id)
+	GetPlayerManager().Broadcast()
+	GetRoomManager().Broadcast()
+	GetRoomManager().BroadcastRoomPlayer(playerMsg.Rid)
 	ConnOnlineMap.Delete(conn.GetConnID())
 	if conn.isClosed == true {
 		return
@@ -151,6 +155,6 @@ func (conn *Connection) Stop() {
 	close(conn.ExitChan)
 	close(conn.msgChan)
 }
-func (conn *Connection) GetConnID() uint32 {
+func (conn *Connection) GetConnID() string {
 	return conn.ConnID
 }

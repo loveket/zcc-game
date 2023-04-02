@@ -7,25 +7,25 @@ import (
 	"sync"
 	"testing"
 	"time"
-	"xiuianserver/connection"
+	"xiuianserver/game"
 )
 
 func init() {
 	for i := 0; i < 50; i++ {
-		osm := &connection.OnlineStatusMsg{
+		osm := &game.OnlineStatusMsg{
 			nil,
 			"systembroadcast" + strconv.Itoa(i),
 		}
-		connection.ConnOnlineMap.Store(i, osm)
+		game.ConnOnlineMap.Store(i, osm)
 	}
 }
 func NsqConsumeTest() {
 	log.Println("start consume test....")
 	wg := &sync.WaitGroup{}
 	config := nsq.NewConfig()
-	connection.ConnOnlineMap.Range(func(key, value any) bool {
+	game.ConnOnlineMap.Range(func(key, value any) bool {
 		wg.Add(1)
-		data := value.(*connection.OnlineStatusMsg)
+		data := value.(*game.OnlineStatusMsg)
 		consume, _ := nsq.NewConsumer(data.NsqTopic, "hpc", config)
 		consume.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 			log.Println("[sub]===>", string(message.Body))

@@ -6,19 +6,21 @@ import (
 )
 
 type Player struct {
-	Id           uint32
+	Id           string
 	Nickname     string
-	Connection   *websocket.Conn
 	Rid          uint32
 	IsRoomMaster bool
+	Connection   *Connection
 	KaPool       *KaPool
+	Friend       *Friend
+	OnlineStatus bool
 }
 
-func NewPlayer(id uint32, nickname string, conn *websocket.Conn) *Player {
+func NewPlayer(id string, nickname string, conn *websocket.Conn) *Player {
 	return &Player{
 		Id:         id,
 		Nickname:   nickname,
-		Connection: conn,
+		Connection: NewConnection(conn, id),
 		KaPool:     &KaPool{},
 	}
 }
@@ -28,36 +30,8 @@ func (p *Player) GetNickname() string {
 }
 func (p *Player) GetPlayerView(player *Player) model.RespPlayer {
 	return model.RespPlayer{
-		Id:       playerId,
+		Id:       player.Id,
 		Nickname: player.Nickname,
 		Rid:      player.Rid,
 	}
 }
-
-//func (p *Player) ReadMsgFromConn() (inputs *model.PeopleMessage, err error) {
-//	fmt.Println("8888888888888888888888888888")
-//	for {
-//		_, data, err := p.Connection.ReadMessage()
-//		if err != nil {
-//			log.Println("read data err", err)
-//			return nil, err
-//		}
-//		fmt.Println("client message from ws" + string(data))
-//		fmt.Println("8888888888899999999999999")
-//		rpt := model.ReqPlayerType{}
-//		err = json.Unmarshal(data, &rpt)
-//		if err != nil {
-//			log.Println("Unmarshal err", err)
-//			return nil, err
-//		}
-//		if rpt.Name == utils.MsgClientSync {
-//			reqmsg := model.ReqMessageData{}
-//			err = json.Unmarshal(data, &reqmsg)
-//			if err != nil {
-//				log.Println("Unmarshal err", err)
-//				return nil, err
-//			}
-//			return &reqmsg.Input, nil
-//		}
-//	}
-//}

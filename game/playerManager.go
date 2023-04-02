@@ -10,75 +10,68 @@ import (
 	"xiuianserver/utils"
 )
 
-var playerId uint32 = 0
-
 var playerManager *PlayerManager
 
 type PlayerManager struct {
-	Player map[uint32]*Player
+	Player map[string]*Player
 	lock   sync.RWMutex
 }
-
-// var playerList []model.RespPlayer = make([]model.RespPlayer, 0)
 
 func GetPlayerManager() *PlayerManager {
 	if playerManager == nil {
 		playerManager = new(PlayerManager)
-		playerManager.Player = make(map[uint32]*Player)
+		playerManager.Player = make(map[string]*Player)
 	}
 	return playerManager
 }
 
-func (pm *PlayerManager) PlayerLogin(conn *websocket.Conn) (bool, error) {
-	var player *Player
-	flag := false
-	if player == nil {
-		_, data, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("read data err", err)
-			return flag, err
-		}
-		rpt := model.ReqPlayerType{}
-		err = json.Unmarshal(data, &rpt)
-		if err != nil {
-			log.Println("Unmarshal err", err)
-			return flag, err
-		}
-		if rpt.Name == utils.ApiPlayerJoin {
-			//fmt.Println("client message nickname" + string(data))
-			rpm := model.ReqPlayerMessage{}
-			err = json.Unmarshal(data, &rpm)
-			if err != nil || len(rpm.Nickname) == 0 {
-				log.Println("Unmarshal err", err)
-				return flag, err
-			}
-			player := GetPlayerManager().CreatePlayer(rpm.Nickname, conn)
-			result := player.GetPlayerView(player)
-			z := model.Response{Name: utils.ApiPlayerJoin, Data: model.ResponseBody{Success: true, Error: "", Res: result}}
-			result1, err := json.Marshal(z)
-			if err != nil {
-				log.Println("Marshal err", err)
-				return flag, err
-			}
-			conn.WriteMessage(websocket.TextMessage, []byte(string(result1)))
-			flag = true
-		}
-	}
-	return flag, nil
-}
-func (pm *PlayerManager) CreatePlayer(nickname string, conn *websocket.Conn) *Player {
+//	func (pm *PlayerManager) PlayerLogin(conn *websocket.Conn) (bool, error) {
+//		var player *Player
+//		flag := false
+//		if player == nil {
+//			_, data, err := conn.ReadMessage()
+//			if err != nil {
+//				log.Println("read data err", err)
+//				return flag, err
+//			}
+//			rpt := model.ReqPlayerType{}
+//			err = json.Unmarshal(data, &rpt)
+//			if err != nil {
+//				log.Println("Unmarshal err", err)
+//				return flag, err
+//			}
+//			if rpt.Name == utils.ApiPlayerJoin {
+//				//fmt.Println("client message nickname" + string(data))
+//				rpm := model.ReqPlayerMessage{}
+//				err = json.Unmarshal(data, &rpm)
+//				if err != nil || len(rpm.Nickname) == 0 {
+//					log.Println("Unmarshal err", err)
+//					return flag, err
+//				}
+//				player := GetPlayerManager().CreatePlayer(rpm.Nickname, conn)
+//				result := player.GetPlayerView(player)
+//				z := model.Response{Name: utils.ApiPlayerJoin, Data: model.ResponseBody{Success: true, Error: "", Res: result}}
+//				result1, err := json.Marshal(z)
+//				if err != nil {
+//					log.Println("Marshal err", err)
+//					return flag, err
+//				}
+//				conn.WriteMessage(websocket.TextMessage, []byte(string(result1)))
+//				flag = true
+//			}
+//		}
+//		return flag, nil
+//	}
+func (pm *PlayerManager) AddPlayer(player *Player) {
 	pm.lock.Lock()
 	defer pm.lock.Unlock()
-	playerId++
-	player := NewPlayer(playerId, nickname, conn)
 	pm.Player[player.Id] = player
 	//playSlice := player.GetPlayerView(player)
 	//playerList = append(playerList, playSlice)
 	//广播玩家
 	//pm.Broadcast()
-	return player
 }
-func (pm *PlayerManager) RemovePlayer(id uint32) {
+func (pm *PlayerManager) RemovePlayer(id string) {
 	pm.lock.Lock()
 	defer pm.lock.Unlock()
 	delete(pm.Player, id)
@@ -111,7 +104,7 @@ func (pm *PlayerManager) Broadcast() {
 		rpl := model.RespPlayerList{Name: utils.MsgPlayerList, Data: playList}
 		result, _ := json.Marshal(rpl)
 		fmt.Println("----", string(result))
-		if err := player.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+		if err := player.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 			log.Println("send message fail", err)
 			continue
 		}

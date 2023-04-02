@@ -26,10 +26,21 @@ func isExistIndex(client *elastic.Client, ctx context.Context, indexName string)
 	}
 	return false
 }
-func AddIndexData(client *elastic.Client, ctx context.Context, indexName string, id string) {
+func CreateIndex(client *elastic.Client, ctx context.Context, indexName string, id string) {
 	if isExistIndex(client, ctx, indexName) {
 		return
 	}
+	put1, err := client.Index().Index(indexName).Id(id).Do(ctx)
+	if err != nil {
+		fmt.Println("add index err", err)
+		return
+	}
+	fmt.Printf("文档Id %s, 索引名 %s\n", put1.Id, put1.Index)
+}
+func AddIndexData(client *elastic.Client, ctx context.Context, indexName string, id string) {
+	//if isExistIndex(client, ctx, indexName) {
+	//	return
+	//}
 	put1, err := client.Index().Index(indexName).Id(id).BodyJson(model.WeaponData).Do(ctx)
 	if err != nil {
 		fmt.Println("add index err", err)

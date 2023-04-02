@@ -1,4 +1,4 @@
-package connection
+package game
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
-	"xiuianserver/game"
 	"xiuianserver/model"
 	"xiuianserver/utils"
 )
@@ -54,16 +53,16 @@ func (h *handlerConnBranch) HandlerBranch(rpt string, data []byte) {
 	}
 }
 func (h *handlerConnBranch) apiPlayerList() {
-	playerList := game.GetPlayerManager().GetPlayerList()
+	playerList := GetPlayerManager().GetPlayerList()
 	resp := model.Response{Name: utils.ApiPlayerList, Data: model.ResponseBody{Success: true, Error: "", Res: playerList}}
-	game.GetPlayerManager().Broadcast()
-	game.GetRoomManager().Broadcast()
+	GetPlayerManager().Broadcast()
+	GetRoomManager().Broadcast()
 	h.conn.msgChan <- resp
 }
 func (h *handlerConnBranch) apiRoomCreate() {
 	if !h.conn.isClosed {
-		cr := game.GetRoomManager().CreateRoom()
-		room := game.GetRoomManager().PlayJoinRoom(cr.Id, h.conn.GetConnID())
+		cr := GetRoomManager().CreateRoom()
+		room := GetRoomManager().PlayJoinRoom(cr.Id, h.conn.GetConnID())
 		if room == nil {
 			log.Println("创建房间失败")
 			return
@@ -74,14 +73,14 @@ func (h *handlerConnBranch) apiRoomCreate() {
 			Players: gps,
 		}}}
 		h.conn.msgChan <- resp
-		game.GetRoomManager().Broadcast()
+		GetRoomManager().Broadcast()
 	} else {
 		log.Println("未登录，不能创建房间")
 		return
 	}
 }
 func (h *handlerConnBranch) apiRoomList() {
-	roomList := game.GetRoomManager().GetRoomList()
+	roomList := GetRoomManager().GetRoomList()
 	//rpl := model.RespRoomList{Name: utils.ApiRoomList, Data: roomList}
 	resp := model.Response{Name: utils.ApiPlayerList, Data: model.ResponseBody{Success: true, Error: "", Res: roomList}}
 	h.conn.msgChan <- resp
@@ -93,23 +92,23 @@ func (h *handlerConnBranch) apiRoomJoin(data []byte) {
 		log.Println("Unmarshal err", err)
 		return
 	}
-	game.GetRoomManager().PlayJoinRoom(reqrid.Rid, h.conn.GetConnID())
-	roomPlayerList := game.GetRoomManager().Room[reqrid.Rid].GetRoomPlayerSlice()
+	GetRoomManager().PlayJoinRoom(reqrid.Rid, h.conn.GetConnID())
+	roomPlayerList := GetRoomManager().Room[reqrid.Rid].GetRoomPlayerSlice()
 	resp := model.Response{Name: utils.ApiRoomJoin, Data: model.ResponseBody{Success: true, Error: "", Res: model.RespRoomMessage{
 		Id:      reqrid.Rid,
 		Players: roomPlayerList,
 	}}}
-	if roomList, ok := game.GetRoomManager().Room[reqrid.Rid]; ok {
+	if roomList, ok := GetRoomManager().Room[reqrid.Rid]; ok {
 		for _, player := range roomList.Players {
 			result, _ := json.Marshal(resp)
 			fmt.Println("----", string(result))
-			if err := player.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+			if err := player.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 				log.Println("send message fail", err)
 				continue
 			}
 		}
 	}
-	game.GetRoomManager().BroadcastRoomPlayer(reqrid.Rid)
+	GetRoomManager().BroadcastRoomPlayer(reqrid.Rid)
 }
 func (h *handlerConnBranch) apiChatSend(data []byte) {
 	req := model.ReqChatHall{}
@@ -119,7 +118,7 @@ func (h *handlerConnBranch) apiChatSend(data []byte) {
 		return
 	}
 	//todo   redis后续引入
-	player := game.GetPlayerManager().Player[h.conn.GetConnID()]
+	player := GetPlayerManager().Player[h.conn.GetConnID()]
 	resp := model.RespChatHall{
 		NickName: player.GetNickname(),
 		Time:     req.Time,
@@ -128,8 +127,8 @@ func (h *handlerConnBranch) apiChatSend(data []byte) {
 	rpl := model.ResponState{Name: utils.MsgPlayerHallChat, Data: resp}
 	result, _ := json.Marshal(rpl)
 	go func() {
-		for _, player := range game.GetPlayerManager().Player {
-			if err := player.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+		for _, player := range GetPlayerManager().Player {
+			if err := player.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 				log.Println("send message fail", err)
 				continue
 			}
@@ -138,15 +137,15 @@ func (h *handlerConnBranch) apiChatSend(data []byte) {
 	}()
 }
 func (h *handlerConnBranch) apiRoomLeave() {
-	if player, ok := game.GetPlayerManager().Player[h.conn.GetConnID()]; ok {
-		err := game.GetRoomManager().PlayerLeaveRoom(player.Rid, player.Id)
+	if player, ok := GetPlayerManager().Player[h.conn.GetConnID()]; ok {
+		err := GetRoomManager().PlayerLeaveRoom(player.Rid, player.Id)
 		if err != nil {
 			fmt.Println("玩家移除储物", err)
 			return
 		}
-		game.GetPlayerManager().Broadcast()
-		game.GetRoomManager().Broadcast()
-		game.GetRoomManager().BroadcastRoomPlayer(player.Rid)
+		GetPlayerManager().Broadcast()
+		GetRoomManager().Broadcast()
+		GetRoomManager().BroadcastRoomPlayer(player.Rid)
 		resp := model.Response{Name: utils.ApiRoomLeave, Data: model.ResponseBody{Success: true, Error: "", Res: ""}}
 		h.conn.msgChan <- resp
 		//fmt.Println("after", game.GetRoomManager().Room[player.Rid].Players)
@@ -156,8 +155,8 @@ func (h *handlerConnBranch) apiRoomLeave() {
 	}
 }
 func (h *handlerConnBranch) apiGameStart() {
-	playerMsg := game.GetPlayerManager().Player[h.conn.ConnID]
-	err := game.GetRoomManager().StartRoom(playerMsg.Rid)
+	playerMsg := GetPlayerManager().Player[h.conn.ConnID]
+	err := GetRoomManager().StartRoom(playerMsg.Rid)
 	var resp model.Response
 	if err != nil {
 		log.Println(err)
@@ -175,7 +174,7 @@ func (h *handlerConnBranch) apiGameKaPool(data []byte) {
 		return
 	}
 	var result []string
-	playerMsg := game.GetPlayerManager().Player[h.conn.ConnID]
+	playerMsg := GetPlayerManager().Player[h.conn.ConnID]
 	if t.Times == 1 {
 		result = append(result, playerMsg.KaPool.OneLuckyDraw()...)
 	} else if t.Times == 10 {
@@ -201,8 +200,8 @@ func (h *handlerConnBranch) msgClientSync(data []byte) {
 		log.Println("Unmarshal err", err)
 		return
 	}
-	playerMsg := game.GetPlayerManager().Player[h.conn.ConnID]
-	roomMsg := game.GetRoomManager().Room[playerMsg.Rid]
+	playerMsg := GetPlayerManager().Player[h.conn.ConnID]
+	roomMsg := GetRoomManager().Room[playerMsg.Rid]
 	if reqmsg.Input.Type == utils.WeaponShoot {
 		rwm := &model.RespWeaponShootMessage{
 			Owner:     reqmsg.Input.Id,
@@ -226,17 +225,17 @@ func (h *handlerConnBranch) msgHp(data []byte) {
 	}
 	//log.Println("actors+++++++++++++", actors.Data)
 	for _, actor := range actors.Data {
-		player := game.GetPlayerManager().Player[actor.Id]
-		if game.GetRoomManager().Room[player.Rid] == nil {
+		player := GetPlayerManager().Player[actor.Id]
+		if GetRoomManager().Room[player.Rid] == nil {
 			continue
 		}
-		if len(game.GetRoomManager().Room[player.Rid].Players) == 1 {
+		if len(GetRoomManager().Room[player.Rid].Players) == 1 {
 			resp := model.Response{Name: utils.MsgGameEnd, Data: model.ResponseBody{Success: true, Error: "", Res: "you win"}}
 			result, _ := json.Marshal(resp)
-			if err := player.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+			if err := player.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 				log.Println("send message fail", err)
 			}
-			err := game.GetRoomManager().PlayerLeaveRoom(player.Rid, player.Id)
+			err := GetRoomManager().PlayerLeaveRoom(player.Rid, player.Id)
 			if err != nil {
 				log.Println("leave room err", err)
 			}
@@ -244,10 +243,10 @@ func (h *handlerConnBranch) msgHp(data []byte) {
 		if actor.Hp <= 0 {
 			resp := model.Response{Name: utils.MsgGameEnd, Data: model.ResponseBody{Success: false, Error: "", Res: "you loser"}}
 			result, _ := json.Marshal(resp)
-			if err := player.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+			if err := player.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 				log.Println("send message fail", err)
 			}
-			err := game.GetRoomManager().PlayerLeaveRoom(player.Rid, player.Id)
+			err := GetRoomManager().PlayerLeaveRoom(player.Rid, player.Id)
 			if err != nil {
 				log.Println("leave room err", err)
 			}

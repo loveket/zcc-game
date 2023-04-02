@@ -16,7 +16,7 @@ type Room struct {
 	Players           []*Player
 	PendingInput      []interface{} //*model.PeopleMessage
 	LastTime          float64
-	LastPlayerFrameId map[uint32]uint64
+	LastPlayerFrameId map[string]uint64
 }
 
 func NewRoom(rid uint32) *Room {
@@ -25,10 +25,10 @@ func NewRoom(rid uint32) *Room {
 		Players:           make([]*Player, 0),
 		PendingInput:      make([]interface{}, 0),
 		LastTime:          float64(time.Now().Unix()) / 1e11,
-		LastPlayerFrameId: make(map[uint32]uint64),
+		LastPlayerFrameId: make(map[string]uint64),
 	}
 }
-func (r *Room) JoinRoom(uid uint32) {
+func (r *Room) JoinRoom(uid string) {
 	if playerMsg, ok := playerManager.Player[uid]; ok {
 		playerMsg.Rid = r.Id
 		playerMsg.IsRoomMaster = true
@@ -102,7 +102,7 @@ func (r *Room) start() error {
 	}
 	for _, v := range r.Players {
 		log.Println("zcc", string(result))
-		if err := v.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+		if err := v.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 			log.Println("create game send message fail", err)
 			return err
 		}
@@ -135,7 +135,7 @@ func (r *Room) SendServerMsg() error {
 			log.Println("json.Marshal fail", err)
 			continue
 		}
-		if err := player.Connection.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
+		if err := player.Connection.Conn.WriteMessage(websocket.TextMessage, []byte(string(result))); err != nil {
 			log.Println("send message fail", err)
 			return err
 		}

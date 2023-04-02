@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
-	"xiuianserver/connection"
+	"xiuianserver/game"
 	nsq_pb "xiuianserver/nsq"
 )
 
@@ -26,8 +26,8 @@ func (sm *SystemMessage) Broadcast() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		connection.ConnOnlineMap.Range(func(key, value any) bool {
-			msgList := value.(*connection.OnlineStatusMsg)
+		game.ConnOnlineMap.Range(func(key, value any) bool {
+			msgList := value.(*game.OnlineStatusMsg)
 			nsq_pb.NsqPub.Publish(msgList.NsqTopic, msg)
 			return true
 		})

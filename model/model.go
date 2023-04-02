@@ -9,7 +9,7 @@ type RespRoomPlayerList struct {
 	Data []RoomPlayerMessage `json:"data"`
 }
 type RespPlayer struct {
-	Id       uint32 `json:"id"`
+	Id       string `json:"id"`
 	Nickname string `json:"nickname"`
 	Rid      uint32 `json:"rid"`
 }
@@ -27,7 +27,7 @@ type RespRoomMessage struct {
 	Players    []RoomPlayerMessage `json:"players"`
 }
 type RoomPlayerMessage struct {
-	Id       uint32 `json:"id"`
+	Id       string `json:"id"`
 	Nickname string `json:"nickname"`
 	Rid      uint32 `json:"rid"`
 }
@@ -62,7 +62,7 @@ type StateList struct {
 	NextBulletId uint32           `json:"nextBulletId"`
 }
 type PlayerMessage struct {
-	Id         uint32     `json:"id"`
+	Id         string     `json:"id"`
 	Nickname   string     `json:"nickname"`
 	Type       string     `json:"type"`
 	WeaponType string     `json:"weaponType"`

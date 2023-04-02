@@ -1,3 +1,5 @@
+Http:
+  IpAddr: ":7000"
 Nsq:
   RemoteAddr: "192.168.44.129:4150"
 Redis:

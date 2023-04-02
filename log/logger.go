@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"xiuianserver/utils"
 )
 
 type LogLevel int
@@ -25,7 +26,7 @@ var (
 )
 
 func init() {
-	path := GetPath()
+	path := utils.GetOsPwd() + "\\log"
 	if len(path) == 0 {
 		return
 	}
@@ -57,13 +58,6 @@ func GetLogger() *Logger {
 		LoggerSingle.init()
 	}
 	return LoggerSingle
-}
-func GetPath() string {
-	path, err := os.Getwd()
-	if err != nil {
-		return ""
-	}
-	return path
 }
 func (l *Logger) init() {
 	l.once.Do(func() {

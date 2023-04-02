@@ -24,9 +24,14 @@ func init() {
 }
 
 type YamlConfig struct {
+	HttpConfig    HTTPConfig    `yaml:"Http"`
 	NsqConfig     NSQConfig     `yaml:"Nsq"`
 	RedisConfig   REDISConfig   `yaml:"Redis"`
 	ElasticConfig ELASTICConfig `yaml:"Elastic"`
+}
+
+type HTTPConfig struct {
+	IpAddr string `yaml:"IpAddr"`
 }
 type NSQConfig struct {
 	RemoteAddr string `yaml:"RemoteAddr"`
