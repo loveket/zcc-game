@@ -10,6 +10,7 @@ type Player struct {
 	Nickname     string
 	Rid          uint32
 	IsRoomMaster bool
+	NsqTopics    map[string]string
 	Connection   *Connection
 	KaPool       *KaPool
 	Friend       *Friend
@@ -17,9 +18,12 @@ type Player struct {
 }
 
 func NewPlayer(id string, nickname string, conn *websocket.Conn) *Player {
+	//nsq主题名为玩家uuid
+	topics := map[string]string{"SystemFunc": id}
 	return &Player{
 		Id:         id,
 		Nickname:   nickname,
+		NsqTopics:  topics,
 		Connection: NewConnection(conn, id),
 		KaPool:     &KaPool{},
 	}

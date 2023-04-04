@@ -1,0 +1,48 @@
+version: '3' # 表示该 Docker-Compose 文件使用的是 Version 2 file
+services:
+  elasticsearch:  # 指定服务名称
+    image: elasticsearch:7.7.0 # 指定 Dockerfile 所在路径
+    volumes:
+      - ./esdata:/usr/share/elasticsearch/data
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    ports:    # 指定端口映射
+      - 9200:9200 #crud port
+      - 9300:9300 #node report port
+    environment:
+      - node.name=es
+      - cluster.name=elasticsearch
+      - discovery.type=single-node
+  elasticsearch-head:  # 指定服务名称
+    image: mobz/elasticsearch-head:5 # 指定 Dockerfile 所在路径
+    #volumes:
+    #  - ./config/vendor.js:/usr/src/app/_site
+    ports:    # 指定端口映射
+      - 9100:9100
+  redis:  # 指定服务名称
+    image: redis:latest # 指定 Dockerfile 所在路径
+    ports:    # 指定端口映射
+      - 6379:6379
+  nsqlookupd:
+    image: nsqio/nsq:latest
+    ports:
+      - 4160:4160
+      - 4161:4161
+    command: /nsqlookupd
+  nsqd:
+    image: nsqio/nsq:latest
+    ports:
+      - 4150:4150
+      - 4151:4151
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160
+    depends_on:
+      - nsqlookupd
+  nsqadmin:
+    image: nsqio/nsq:latest
+    ports:
+      - 4171:4171
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+    depends_on:
+      - nsqlookupd
+
+  
+ 

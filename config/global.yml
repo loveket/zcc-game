@@ -1,9 +1,11 @@
 Http:
   IpAddr: ":7000"
+Rpc:
+  IpAddr: ":7001"
 Nsq:
-  RemoteAddr: "192.168.44.129:4150"
+  RemoteAddr: "192.168.44.131:4150"
 Redis:
-  RemoteAddr: "127.0.0.1:6379"
+  RemoteAddr: "192.168.44.131:6379"
   User: ""
   Pass: ""
   DB: 0

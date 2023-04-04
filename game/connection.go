@@ -74,11 +74,11 @@ func (conn *Connection) Start() {
 	//}
 	go conn.WSRead()
 	go conn.WSWrite()
-	osm := &OnlineStatusMsg{
-		conn.Conn.RemoteAddr(),
-		"systembroadcast" + conn.GetConnID(),
-	}
-	ConnOnlineMap.Store(conn.ConnID, osm)
+	//osm := &OnlineStatusMsg{
+	//	conn.Conn.RemoteAddr(),
+	//	"systembroadcast" + conn.GetConnID(),
+	//}
+	//ConnOnlineMap.Store(conn.ConnID, osm)
 }
 func (conn *Connection) WSRead() {
 	log.Println(conn.ConnID, "start read")

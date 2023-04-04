@@ -7,7 +7,7 @@ import (
 	api "xiuianserver/api/http"
 	gc "xiuianserver/config"
 	"xiuianserver/game"
-	"xiuianserver/redis"
+	"xiuianserver/rpc"
 	"xiuianserver/utils"
 )
 
@@ -20,9 +20,10 @@ func init() {
 func main() {
 	log.Println("[zcc-game] serve already start...")
 	go game.ListenPlayerMap()
-	redis.NewRedis()
-	//http.HandleFunc("/", wsHandle)
-	//http.ListenAndServe(":7000", nil)
+	go rpc.RpcServer.Start()
+	//redis.NewRedis()
+	//nsq.NewNsqClient()
+	//systemfunc.BroadcastTest()
 	api.HttpApi(router)
 	router.Run(gc.GlobalConfig.HttpConfig.IpAddr)
 }

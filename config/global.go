@@ -28,6 +28,7 @@ type YamlConfig struct {
 	NsqConfig     NSQConfig     `yaml:"Nsq"`
 	RedisConfig   REDISConfig   `yaml:"Redis"`
 	ElasticConfig ELASTICConfig `yaml:"Elastic"`
+	RpcConfig     RPCConfig     `yaml:"Rpc"`
 }
 
 type HTTPConfig struct {
@@ -35,6 +36,9 @@ type HTTPConfig struct {
 }
 type NSQConfig struct {
 	RemoteAddr string `yaml:"RemoteAddr"`
+}
+type RPCConfig struct {
+	IpAddr string `yaml:"IpAddr"`
 }
 type REDISConfig struct {
 	RemoteAddr string `yaml:"RemoteAddr"`
